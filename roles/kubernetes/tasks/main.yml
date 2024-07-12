@@ -1,0 +1,60 @@
+---
+- name: Download Mirantis(Docker runtime)
+  get_url:
+    url: https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd_0.3.14.3-0.ubuntu-jammy_amd64.deb
+    dest: /home
+
+- name: Installing Mirantis using dpkg
+  command: dpkg -i /home/cri-dockerd_0.3.14.3-0.ubuntu-jammy_amd64.deb
+
+- name: Installing apt-transport-https ca-certificates curl gpg 
+  apt :
+    name:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gpg
+    update_cache: yes
+
+- name: Ensure /etc/apt/keyrings directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Kubernetes apt keyring
+  get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+    dest: /tmp/Release.key
+
+- name: Convert Kubernetes apt keyring to gpg format
+  command:
+    cmd: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/Release.key
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add Kubernetes GPG key
+  apt_key:
+    url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+    state: present
+    keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /'
+    state: present
+    filename: 'kubernetes'
+
+- name: Update repos
+  apt:
+    update-cache: yes
+
+- name: Installing kubelet, kubeadm. kubectl packages
+  apt:
+    name:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: Hold kubelet, kubeadm, kubectl packages
+  command: sudo apt-mark hold kubelet kubeadm kubectl

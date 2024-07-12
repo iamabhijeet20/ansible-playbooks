@@ -1,0 +1,10 @@
+---
+- name: Installing packages with ansible
+  hosts: all
+  remote_user: ubuntu
+  become: true
+  roles:
+    - jenkins
+    - nginx
+    - docker
+    - kubernetes

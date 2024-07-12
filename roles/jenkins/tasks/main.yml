@@ -1,0 +1,33 @@
+---
+- name: Update packages
+  apt : 
+    update-cache : yes
+
+- name: Install Java
+  apt:
+    name: openjdk-17-jre
+    state: present
+    
+- name: Installing jenkins apt key
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    state: present
+    
+- name: Installing jenkins repo 
+  apt_repository:
+    repo: deb https://pkg.jenkins.io/debian-stable binary/
+    state : present
+
+- name: Update repos
+  apt:
+    update-cache: yes
+    
+- name: Install Jenkins
+  apt:
+    name: jenkins
+    state: present
+
+- name: start Jenkins
+  service:
+    name: jenkins
+    state: started
